@@ -142,16 +142,17 @@ http http://localhost:8000/ \
 ##### Create an upstream
 
 ```
-http  --form http://localhost:8001/upstreams name='blue.v1.prod' \
-healthchecks.active.https_verify_certificate:false \
-healthchecks.active.unhealthy.tcp_failures:=2 \
-healthchecks.active.unhealthy.timeouts:=2 \
-healthchecks.active.unhealthy.http_failures:=1 \
-healthchecks.active.unhealthy.interval:=5 \
-healthchecks.active.timeout:=3 \
-healthchecks.active.healthy.interval:=10 \
-healthchecks.active.healthy.successes:=3 \
-healthchecks.active.type='http'
+http  --form http://localhost:8001/upstreams \
+   name='blue.v1.prod' \
+   healthchecks.active.https_verify_certificate:false \
+   healthchecks.active.unhealthy.tcp_failures:=2 \
+   healthchecks.active.unhealthy.timeouts:=2 \
+   healthchecks.active.unhealthy.http_failures:=1 \
+   healthchecks.active.unhealthy.interval:=5 \
+   healthchecks.active.timeout:=3 \
+   healthchecks.active.healthy.interval:=10 \
+   healthchecks.active.healthy.successes:=3 \
+   healthchecks.active.type='http'
 ```
 
 Fallowing settings works as bellow:
