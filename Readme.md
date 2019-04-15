@@ -1,4 +1,6 @@
+![Screenshot](img/kong_logo.png)
 # Kong-Playpen
+
 
 Playing with Kong API Gateway [https://getkong.org/](https://getkong.org/)
 
