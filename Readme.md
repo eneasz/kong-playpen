@@ -17,7 +17,7 @@ This starts...
   * Kong Admin API - [http://localhost:8001/status](http://localhost:8001/status)
   * Kong API Proxy - [http://localhost:8000/](http://localhost:8000)
   
-* Cassandra: DB for Kong config data
+* Postgress: DB for Kong config data
 
 * Kong-UI: An optional GUI for configuring Kong - [http://localhost:8090/](http://localhost:8090)
   * When the UI asks you for your Kong server enter: ```http://kong:8001```
@@ -30,69 +30,62 @@ Note: You'll need to wait about a minute for startup to complete.
 
 ### Adding an API
 
-Reference: [https://docs.konghq.com/0.14.x/getting-started/configuring-a-service/](https://docs.konghq.com/0.14.x/getting-started/configuring-a-service/)
+Reference: [https://docs.konghq.com/0.15.x/getting-started/configuring-a-service/](https://docs.konghq.com/0.15.x/getting-started/configuring-a-service/)
 
-#####  Add your Service using the Admin API
+#####  Add blue service using the Admin API
 
 Call the Kong API:
 
 ```
-curl -i -X POST \
-  --url http://localhost:8001/services/ \
-  --data 'name=world1' \
-  --data 'url=http://world1:8091/'
+http POST http://localhost:8001/services/ \
+   name="blue" \
+   url="http://foo1:8091/"
 ```
 
 
-#####  Add your 2nd Service using the Admin API
+#####  Add green service using the Admin API
 
 ```
-curl -i -X POST \
-  --url http://localhost:8001/services/ \
-  --data 'name=world2' \
-  --data 'url=http://world2:8092/'
+http POST http://localhost:8001/services/ \
+   name="green" \
+   url="http://foo2:8092/"
 ```
 
-#####  UPDATE 1st Service using the Admin API
+#####  UPDATE blue Service using the Admin API
 
 ```
-curl -i -X PUT \
-  --url http://localhost:8001/services/world1 \
-  --data 'name=world1' \
-  --data 'url=http://world1:8091/'
+http PUT http://localhost:8001/services/blue \
+   name="blue" \
+   url="http://foo1:8091/"
 ```
 
 #####  Add a Route for the Service
 
 ```
-curl -i -X POST \
-  --url http://localhost:8001/services/world1/routes \
-  --data 'hosts[]=world1.com'
+http POST http://localhost:8001/services/blue/routes  \
+   hosts:='["deployment1.com"]'
 ```
 
 #####  Add 2nd Route for the Service
 
 ```
-curl -i -X POST \
-  --url http://localhost:8001/services/world2/routes \
-  --data 'hosts[]=world2.com'
+http POST http://localhost:8001/services/green/routes  \
+   hosts:='["deployment2.com"]'
 ```
 
 
 #### Call the world1 service through Kong (Using Hosts)
 
 ```
-curl -i -X GET \
-  --url http://localhost:8000/ \
-  --header 'Host: world1.com'
+http http://localhost:8000/ \
+   Host:deployment1.com
 ```
 
 ##### Call the world2 service through Kong (Using Hosts)
 
 ```
-curl -i -X GET \
-  --url http://localhost:8000/ \
-  --header 'Host: world2.com'
+http http://localhost:8000/ \
+   Host:deployment2.com
 ```
 
 
@@ -104,18 +97,16 @@ Reference: [https://getkong.org/plugins/key-authentication/](https://getkong.org
 #### Enable Key Auth for the Foo API
 
 ```
-curl -i -X POST \
-  --url http://localhost:8001/services/world1/plugins/ \
-  --data 'name=key-auth' \
-  --data "config.hide_credentials=true"
+http http://localhost:8001/services/blue/plugins/ \
+   name='key-auth' \
+   config.hide_credentials:true
 ```
 
-##### Try to call the API now...
+##### Try to call the deployment1 via gateway now...
 
 ```
-curl -i -X GET \
-  --url http://localhost:8000/ \
-  --header 'Host: world1.com'
+http http://localhost:8000/ \
+   Host:deployment1.com
 ```
 
 You will be unauthorized.
@@ -123,26 +114,24 @@ You will be unauthorized.
 ##### To get authorized create a user:
 
 ```
-curl -i -X POST \
-  --url http://localhost:8001/consumers/ \
-  --data "username=Damian"
+http http://localhost:8001/consumers/ \
+   username='Damian'
 ```
 
 ##### Make note of the id returned for use in the next command.
 
+Bellow I've hardcoded key however if key value isn't provided gateway will generate and return key
 ```
-curl -i -X POST \
-  --url http://localhost:8001/consumers/Damian/key-auth/ \
-  --data ''
+http http://localhost:8001/consumers/Damian/key-auth/ \
+   key='VerySecretKeyExample'
 ```
 
-Use the Key:
+Use the key to call apigw:
 
 ```
-curl -i -X GET \
-  --url http://localhost:8000 \
-  --header "Host: world1.com" \
-  --header "apikey: {key from last step}"
+http http://localhost:8000/ \
+   Host:deployment1.com \
+   apikey:'VerySecretKeyExample'
  ```
 
 
@@ -151,47 +140,59 @@ curl -i -X GET \
 ##### Create an upstream
 
 ```
-curl -X POST http://localhost:8001/upstreams \
-    --data "name=blue.v1.prod"
+curl -X POST \
+   http://localhost:8001/upstreams \
+   -H 'Content-Type: application/x-www-form-urlencoded' \
+   -H 'cache-control: no-cache' \
+   -d 'name=blue.v1.prod' \
+   -d 'healthchecks.active.https_verify_certificate=false' \
+   -d 'healthchecks.active.unhealthy.tcp_failures=2' \
+   -d 'healthchecks.active.unhealthy.timeouts=2' \
+   -d 'healthchecks.active.unhealthy.http_failures=1' \
+   -d 'healthchecks.active.unhealthy.interval=3' \
+   -d 'healthchecks.active.timeout=3' \
+   -d 'healthchecks.active.healthy.interval=10' \
+   -d 'healthchecks.active.healthy.successes=3' \
+   -d 'healthchecks.active.type=http' \
+   -d 'healthchecks.active.http_path=%2F' \
+   -d 'healthchecks.active.healthy.http_statuses=200' |jq .
 ```
 
 ##### Add two targets to the upstream
 
 ```
-curl -X POST http://localhost:8001/upstreams/blue.v1.prod/targets \
-    --data "target=world1:8091" \
-    --data "weight=100"
+http http://localhost:8001/upstreams/blue.v1.prod/targets \
+   target='foo1:8091' \
+   weight:=100
 ```
 
 ```
-curl -X POST http://localhost:8001/upstreams/blue.v1.prod/targets \
-    --data "target=example.com:80" \
-    --data "weight=50"
+http http://localhost:8001/upstreams/blue.v1.prod/targets \
+   target='example.com:80' \
+   weight:=50
 ```
 
 
 ##### Create a LIVE Service targeting the Blue upstream
 
 ```
-curl -X POST http://localhost:8001/services \
-     --data 'name=live' \
-     --data "host=blue.v1.prod" \
-     --data "path=/"
+http http://localhost:8001/services \
+   name="live" \
+   host="blue.v1.prod" \
+   path="/"
 ```
 
 ##### Finally, add a Route as an entry-point into the Service
 
 ```
-curl -X POST http://localhost:8001/services/live/routes/ \
-    --data "hosts[]=live.world.com"
+http POST http://localhost:8001/services/live/routes/ \
+   hosts:='["live.lbg.com"]'
 ```
 
 ##### Test loadbalancing
 
 ```
-curl -i -X GET \
-  --url http://localhost:8000/ \
-  --header 'Host: live.world.com'
+while true; do http  http://live.lbg.com:8000/ ; sleep 2; clear; done
 ```
 
 
@@ -200,32 +201,44 @@ curl -i -X GET \
 ##### Create an upstream
 
 ```
-curl -X POST http://localhost:8001/upstreams \
-    --data "name=green.v2.prod"
+curl -X POST \
+   http://localhost:8001/upstreams \
+   -H 'Content-Type: application/x-www-form-urlencoded' \
+   -H 'cache-control: no-cache' \
+   -d 'name=green.v2.prod' \
+   -d 'healthchecks.active.https_verify_certificate=false' \
+   -d 'healthchecks.active.unhealthy.tcp_failures=2' \
+   -d 'healthchecks.active.unhealthy.timeouts=2' \
+   -d 'healthchecks.active.unhealthy.http_failures=1' \
+   -d 'healthchecks.active.unhealthy.interval=3' \
+   -d 'healthchecks.active.timeout=3' \
+   -d 'healthchecks.active.healthy.interval=10' \
+   -d 'healthchecks.active.healthy.successes=3' \
+   -d 'healthchecks.active.type=http' \
+   -d 'healthchecks.active.http_path=%2F' \
+   -d 'healthchecks.active.healthy.http_statuses=200' |jq .
 ```
 
 ##### Add targets to the upstream
 
 ```
-curl -X POST http://localhost:8001/upstreams/green.v2.prod/targets \
-    --data "target=world2:8092" \
-    --data "weight=100"
+http http://localhost:8001/upstreams/green.v2.prod/targets \
+   target='foo2:8092' \
+   weight:=100
 ```
 
 
 ##### Switch the API from Blue to Green upstream, v1 -> v2
 
 ```
-curl -X PATCH http://localhost:8001/services/live \
-    --data "host=green.v2.prod"
+http PATCH http://localhost:8001/services/live \
+   host="green.v2.prod"
 ```
 
 ##### Confirm trafic is now going to green V2
 
 ```
-curl -i -X GET \
-  --url http://localhost:8000/ \
-  --header 'Host: live.world.com'
+http  http://live.lbg.com:8000/
 ```
 
 Back to TOC

@@ -1,8 +1,31 @@
 version: '2.1'
+
+volumes:
+    kong_data: {}
+
+networks:
+  kong-net:
 services:
+  kong-migrations:
+    image: "${KONG_DOCKER_TAG:-kong:0.15}"
+    command: kong migrations bootstrap
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_DATABASE: ${KONG_PG_DATABASE:-kong}
+      KONG_PG_HOST: db
+      KONG_PG_PASSWORD: ${KONG_PG_PASSWORD:-kong}
+      KONG_PG_USER: ${KONG_PG_USER:-kong}
+    links:
+      - db:db
+    networks:
+      - kong-net
+    restart: on-failure
   kong:
-    image: "${KONG_DOCKER_TAG:-kong:latest}"
-    command: kong start --run-migrations
+    image: "${KONG_DOCKER_TAG:-kong:0.15}"
+    user: "${KONG_USER:-root}"
     depends_on:
       db:
         condition: service_healthy
@@ -18,10 +41,8 @@ services:
       KONG_PG_USER: ${KONG_PG_USER:-kong}
       KONG_PROXY_ACCESS_LOG: /dev/stdout
       KONG_PROXY_ERROR_LOG: /dev/stderr
-    links:
-      - db:db
-      - foo1:world1
-      - foo2:world2
+    networks:
+      - kong-net
     ports:
       - "8000:8000/tcp"
       - "8001:8001/tcp"
@@ -42,6 +63,11 @@ services:
     restart: on-failure
     stdin_open: true
     tty: true
+    networks:
+      - kong-net
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+
   foo1:
     image: "eneasz/servicefoo:latest"
     environment:
@@ -49,6 +75,8 @@ services:
       port: "8091"
     ports:
       - "8091:8091"
+    networks:
+      - kong-net
   foo2:
     image: "eneasz/servicefoo:latest"
     environment:
@@ -56,6 +84,8 @@ services:
       port: "8092"
     ports:
       - "8092:8092"
+    networks:
+      - kong-net
 
   kong-ui:
     restart: on-failure
@@ -65,3 +95,5 @@ services:
       - "8090:8080"
     links:
       - kong:kong
+    networks:
+      - kong-net
