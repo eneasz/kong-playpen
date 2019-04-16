@@ -215,13 +215,13 @@ http http://localhost:8001/services \
 
 ```
 http POST http://localhost:8001/services/live/routes/ \
-   hosts:='["live.lbg.com"]'
+   hosts:='["live.company.com"]'
 ```
 
 ##### Test loadbalancing
 
 ```
-while true; do http  http://live.lbg.com:8000/ ; sleep 2; clear; done
+while true; do http  http://live.company.com:8000/ ; sleep 2; clear; done
 ```
 
 
@@ -262,7 +262,7 @@ http PATCH http://localhost:8001/services/live \
 ##### Confirm trafic is now going to green V2
 
 ```
-http  http://live.lbg.com:8000/
+http  http://live.company.com:8000/
 ```
 
 Back to TOC
@@ -271,11 +271,11 @@ Permalink
 
 ### EndPoints
 
-http://live.lbg.com:8000/ - Live
+http://live.company.com:8000/ - Live
 
 | URL                              | Description      |
 | :-------------------------------:|:----------------:|
-| http://live.lbg.com:8000/        | Live traffic url |
+| http://live.company.com:8000/        | Live traffic url |
 | http://deployment1.com:8000/     | Access to deployment1 service via APIGW |
 | http://deployment2.com:8000/     | Access to deployment2 service via APIGW |
 | http://deployment1.com:8091/     | Access to deployment1 directly |
