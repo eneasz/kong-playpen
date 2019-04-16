@@ -259,6 +259,11 @@ http PATCH http://localhost:8001/services/live \
    host="green.v2.prod"
 ```
 
+To make it switch every 15s
+```
+while true; do http PATCH http://localhost:8001/services/live host="blue.v1.prod"; sleep 15; http PATCH http://localhost:8001/services/live host="green.v2.prod"; sleep 15; done
+```
+
 ##### Confirm trafic is now going to green V2
 
 ```
