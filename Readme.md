@@ -221,7 +221,7 @@ http POST http://localhost:8001/services/live/routes/ \
 ##### Test loadbalancing
 
 ```
-while true; do http  http://live.company.com:8000/ ; sleep 2; clear; done
+while true; do http http://localhost:8000/ Host:live.company.com ; sleep 2; clear; done
 ```
 
 
