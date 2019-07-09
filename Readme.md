@@ -41,7 +41,7 @@ Call the Kong API:
 ```
 http POST http://localhost:8001/services/ \
    name="blue" \
-   url="http://foo1:8091/"
+   url="http://world1:8091/"
 ```
 
 
@@ -50,7 +50,7 @@ http POST http://localhost:8001/services/ \
 ```
 http POST http://localhost:8001/services/ \
    name="green" \
-   url="http://foo2:8092/"
+   url="http://world2:8092/"
 ```
 
 #####  UPDATE blue Service using the Admin API
@@ -58,7 +58,7 @@ http POST http://localhost:8001/services/ \
 ```
 http PUT http://localhost:8001/services/blue \
    name="blue" \
-   url="http://foo1:8091/"
+   url="http://world1:8091/"
 ```
 
 #####  Add a Route for the Service
@@ -191,7 +191,7 @@ Fallowing settings works as bellow:
 
 ```
 http http://localhost:8001/upstreams/blue.v1.prod/targets \
-   target='foo1:8091' \
+   target='world1:8091' \
    weight:=100
 ```
 
@@ -247,7 +247,7 @@ http  --form http://localhost:8001/upstreams \
 
 ```
 http http://localhost:8001/upstreams/green.v2.prod/targets \
-   target='foo2:8092' \
+   target='world2:8092' \
    weight:=100
 ```
 
