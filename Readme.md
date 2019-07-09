@@ -211,7 +211,7 @@ http http://localhost:8001/services \
    path="/"
 ```
 
-##### Finally, add a Route as an entry-point into the Service
+##### Finally, add a Route as an entry-point into the LIVE Service
 
 ```
 http POST http://localhost:8001/services/live/routes/ \
@@ -221,7 +221,7 @@ http POST http://localhost:8001/services/live/routes/ \
 ##### Test loadbalancing
 
 ```
-while true; do http  http://live.company.com:8000/ ; sleep 2; clear; done
+while true; do http http://localhost:8000/ Host:live.company.com ; sleep 2; clear; done
 ```
 
 
@@ -251,6 +251,27 @@ http http://localhost:8001/upstreams/green.v2.prod/targets \
    weight:=100
 ```
 
+##### Create a STANDBY Service targeting the Blue upstream
+
+```
+http http://localhost:8001/services \
+   name="standby" \
+   host="green.v2.prod" \
+   path="/"
+```
+
+##### Adding a Route as an entry-point into the STANDBY Service
+
+```
+http POST http://localhost:8001/services/standby/routes/ \
+   hosts:='["standby.company.com"]'
+```
+
+##### Test loadbalancing STANDBY
+
+```
+while true; do http http://localhost:8000/ Host:standby.company.com ; sleep 2; clear; done
+```
 
 ##### Switch the API from Blue to Green upstream, v1 -> v2
 
@@ -286,6 +307,7 @@ http://live.company.com:8000/ - Live
 | URL                              | Description      |
 | :-------------------------------:|:----------------:|
 | http://live.company.com:8000/        | Live traffic url |
+| http://standby.company.com:8000/        | Standby traffic url |
 | http://deployment1.com:8000/     | Access to deployment1 service via APIGW |
 | http://deployment2.com:8000/     | Access to deployment2 service via APIGW |
 | http://deployment1.com:8091/     | Access to deployment1 directly |
