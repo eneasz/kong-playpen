@@ -318,8 +318,7 @@ http://live.company.com:8000/ - Live
 ### Clean up
 
 ```
-docker-compose down
-docker volume rm kong-playpen_kong_data
+docker-compose down -v
 ```
 
 TODO 
